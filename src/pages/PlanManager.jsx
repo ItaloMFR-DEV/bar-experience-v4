@@ -55,8 +55,8 @@ export default function PlanManager() {
       setError('O limite de escolhas não pode ser maior que a quantidade de opções disponíveis.')
       return
     }
-    if (selected.length < Number(form.drink_option_limit) && Number(form.drink_option_limit) > 0) {
-      setError('Cadastre e selecione pelo menos ' + form.drink_option_limit + ' drinks para compor as opções deste plano.')
+    if (selected.length !== Number(form.drink_option_limit) && Number(form.drink_option_limit) > 0) {
+      setError('Associe exatamente ' + form.drink_option_limit + ' drinks a este plano para definir a quantidade de opções disponíveis.')
       return
     }
     setSaving(true); setError('')
