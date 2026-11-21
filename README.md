@@ -1,63 +1,64 @@
-# BAR EXPERIENCE — Portfólio
+# BAR EXPERIENCE
 
-Portfólio digital em React + Vite, responsivo para celular e computador.
+Aplicação React + Vite + Supabase para portfólio, catálogo, composição de cardápios e orçamento de eventos.
 
 ## Executar no Android com Termux
+
 ```bash
-pkg update -y
-pkg install nodejs-lts unzip -y
-cd ~/bar_experience
+cd ~/bar_experience_v4
 npm install
 npm run dev -- --host 0.0.0.0
 ```
-Abra `http://127.0.0.1:5173` no navegador do celular. Para encerrar, pressione `CTRL + C` no Termux.
 
-## Editar sem procurar pelo código inteiro
+Abra `http://127.0.0.1:5173` no navegador do celular.
 
-### 1. Identidade, textos institucionais e links
-Arquivo: `src/data/site.js`
+## Rotas
 
-Edite:
-- `name`: nome da empresa.
-- `eyebrow`: texto curto acima do título.
-- `slogan`: chamada principal.
-- `description`: apresentação da empresa.
-- `city`: região atendida.
-- `orcamentoUrl`: endereço da ferramenta de orçamento (quando for vincular).
-- `instagramUrl`: endereço do Instagram.
+- `/` — portfólio público.
+- `/orcamento` — ferramenta de orçamento para clientes.
+- `/admin` — painel administrativo.
 
-O botão "Use nossa ferramenta de orçamento" já está preparado. Quando tiver o endereço da ferramenta, basta colá-lo em `orcamentoUrl`.
+O botão "Use nossa ferramenta de orçamento" no portfólio abre `/orcamento` por padrão. O endereço externo opcional pode ser definido em `src/data/site.js`, na propriedade `orcamentoUrl`.
 
-### 2. Planos, descrições, drinks e imagens
-Arquivo: `src/data/plans.js`
+## Configuração do banco de dados
 
-Cada plano possui:
-- `name`: nome exibido.
-- `tier`: categoria curta.
-- `description`: descrição comercial.
-- `drinks`: lista de opções do cardápio.
-- `image`: endereço da fotografia.
-- `featured`: define se o plano recebe destaque visual.
+Execute no SQL Editor do Supabase o arquivo:
 
-Para trocar uma imagem, substitua somente a URL do campo `image`.
+`supabase/migrations/20261121_client_quote_builder.sql`
 
-### 3. Aparência
-Arquivo: `src/styles.css`
+A migração cria:
+- `be_drinks`: catálogo público de receitas.
+- `be_drink_costs`: custos e preço de referência, com acesso exclusivo ao administrador.
+- `be_plans`: planos, preços, duração incluída e limites de seleção.
+- `be_plan_drinks`: associação entre planos e drinks.
 
-Centraliza cores, fontes, tamanhos, espaçamentos e comportamento responsivo.
+A migração também cadastra os cinco planos iniciais com preços zerados. Preencha os preços no painel antes de disponibilizar a ferramenta aos clientes. Ela usa a função administrativa `public.be_is_admin()`, já configurada nas etapas anteriores.
 
-### 4. Estrutura da página
-Arquivo: `src/App.jsx`
+## Painel administrativo
 
-Contém os componentes e a organização das seções.
+- **Drinks:** receita, ingredientes, modo de preparo, imagem, volume, custo dos ingredientes, guarnição, copo/embalagem, outros custos, preço de referência e CMV.
+- **Planos e cardápios:** preço-base, preço por convidado, horas incluídas, valor por hora adicional, quantidade de drinks disponíveis e limite de escolha do cliente; também associa os drinks permitidos em cada plano.
+- **Serviços, estruturas e profissionais:** cadastro e precificação nos módulos existentes.
+- **Orçamentos:** as solicitações enviadas pelo cliente são registradas em `be_quotes` com status `pending`, aguardando análise manual.
 
-## Padrão editorial
-Todo texto voltado ao cliente deve ser profissional, objetivo e natural. Não publicar marcadores de teste, frases genéricas, comentários sobre desenvolvimento, referências a conteúdo demonstrativo ou linguagem que pareça texto automático. Antes de publicar, revisar ortografia, nomes dos coquetéis, condições comerciais e informações de contato.
+## Regras da ferramenta de orçamento
 
-## Estado desta versão
-- Página pública e responsiva.
-- Cinco planos cadastrados.
-- Imagens substituíveis por URL.
-- Botões de orçamento preparados para receber o endereço da ferramenta.
-- Ainda não possui painel administrativo, autenticação, banco de dados ou upload de imagens. Esses recursos serão desenvolvidos na próxima fase.
-- As imagens externas exigem conexão com a internet.
+- O cliente escolhe um plano e seleciona exatamente o limite de drinks definido nele.
+- Define a quantidade de convidados e a duração do serviço.
+- Pode adicionar serviços, estruturas e profissionais ativos.
+- O carrinho exibe os itens e o valor estimado.
+- O pedido é enviado para análise; o envio não confirma a contratação.
+- A estimativa considera preço-base do plano + preço por convidado + horas adicionais; serviços e estruturas usam seus modelos de cobrança cadastrados; profissionais usam valor-base + valor por hora.
+- O cliente não recebe dados de custo ou CMV. Esses dados ficam na tabela administrativa separada.
+
+## Segurança
+
+Nunca coloque a chave `service_role` no frontend. O projeto deve usar somente a URL do Supabase e a chave publicável/anon no arquivo local `.env`, que não deve ser versionado. A tabela de custos de drinks tem política RLS exclusiva para administradores.
+
+## Build
+
+```bash
+npm run build
+```
+
+Antes de publicar, cadastre os drinks, associe as opções aos planos e preencha os preços comerciais.
