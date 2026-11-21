@@ -1,6 +1,6 @@
-
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import CatalogManager from './CatalogManager'
 import {
   LayoutDashboard, FileText, Martini, Users,
   Package, Tags, LogOut, LockKeyhole
@@ -21,14 +21,9 @@ export default function AdminPage() {
     async function checkSession() {
       try {
         const { data, error } = await supabase.auth.getSession()
-
         if (error) throw error
-
-        if (data.session && mounted) {
-          await verifyAdmin(data.session)
-        } else if (mounted) {
-          setLoading(false)
-        }
+        if (data.session && mounted) await verifyAdmin(data.session)
+        else if (mounted) setLoading(false)
       } catch (err) {
         if (mounted) {
           setError('Erro ao recuperar sessão: ' + err.message)
@@ -38,17 +33,14 @@ export default function AdminPage() {
     }
 
     checkSession()
-
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (event) => {
-        if (event === 'SIGNED_OUT' && mounted) {
-          setSession(null)
-          setAuthorized(false)
-          setLoading(false)
-          setError('')
-        }
+    const { data: listener } = supabase.auth.onAuthStateChange(event => {
+      if (event === 'SIGNED_OUT' && mounted) {
+        setSession(null)
+        setAuthorized(false)
+        setLoading(false)
+        setError('')
       }
-    )
+    })
 
     return () => {
       mounted = false
@@ -57,63 +49,49 @@ export default function AdminPage() {
   }, [])
 
   async function verifyAdmin(currentSession) {
-  try {
-    setSession(currentSession)
-
-    const { data, error } = await supabase.rpc('be_is_admin')
-
-    if (error) {
+    try {
+      setSession(currentSession)
+      const { data, error } = await supabase.rpc('be_is_admin')
+      if (error) {
+        setAuthorized(false)
+        setError('Erro ao verificar autorização: ' + error.message)
+        return
+      }
+      if (data !== true) {
+        setAuthorized(false)
+        setError('Login realizado, mas este usuário não está autorizado como administrador.')
+        return
+      }
+      setAuthorized(true)
+      setError('')
+    } catch (err) {
       setAuthorized(false)
-      setError(
-        'Erro ao verificar autorização: ' + error.message
-      )
-      return
+      setError('Erro na verificação administrativa: ' + err.message)
+    } finally {
+      setLoading(false)
     }
-
-    if (data !== true) {
-      setAuthorized(false)
-      setError(
-        'Login realizado, mas este usuário não está autorizado como administrador.'
-      )
-      return
-    }
-
-    setAuthorized(true)
-    setError('')
-  } catch (err) {
-    setAuthorized(false)
-    setError('Erro na verificação administrativa: ' + err.message)
-  } finally {
-    setLoading(false)
   }
-}
 
   async function login(event) {
     event.preventDefault()
-
     if (loading) return
-
     setLoading(true)
     setError('')
-
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password
       })
-
       if (error) {
         setError('Falha na autenticação: ' + error.message)
         setLoading(false)
         return
       }
-
       if (!data.session) {
         setError('O Supabase não retornou uma sessão válida.')
         setLoading(false)
         return
       }
-
       await verifyAdmin(data.session)
     } catch (err) {
       setError('Erro inesperado no login: ' + err.message)
@@ -123,15 +101,12 @@ export default function AdminPage() {
 
   async function logout() {
     setLoading(true)
-
     const { error } = await supabase.auth.signOut()
-
     if (error) {
       setError('Erro ao sair: ' + error.message)
       setLoading(false)
       return
     }
-
     setSession(null)
     setAuthorized(false)
     setPassword('')
@@ -139,63 +114,23 @@ export default function AdminPage() {
     setLoading(false)
   }
 
-  if (loading) {
-    return (
-      <div className="be-screen">
-        Verificando acesso administrativo...
-      </div>
-    )
-  }
+  if (loading) return <div className="be-screen">Verificando acesso administrativo...</div>
 
   if (!session || !authorized) {
     return (
       <main className="be-screen">
         <form className="be-login" onSubmit={login}>
-          <div className="be-brand-mark">
-            <LockKeyhole size={25}/>
-          </div>
-
+          <div className="be-brand-mark"><LockKeyhole size={25}/></div>
           <span className="be-kicker">BAR EXPERIENCE</span>
           <h1>Painel administrativo</h1>
           <p>Acesse sua conta para gerenciar o negócio.</p>
-
           <label>E-mail</label>
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="Seu e-mail"
-            autoComplete="username"
-            required
-          />
-
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Seu e-mail" autoComplete="username" required/>
           <label>Senha</label>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Sua senha"
-            autoComplete="current-password"
-            required
-          />
-
-          {error && (
-            <div className="be-error">
-              {error}
-            </div>
-          )}
-
-          <button
-            className="be-primary"
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? 'Verificando...' : 'Entrar no painel'}
-          </button>
-
-          <a className="be-back" href="/">
-            Voltar ao portfólio
-          </a>
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Sua senha" autoComplete="current-password" required/>
+          {error && <div className="be-error">{error}</div>}
+          <button className="be-primary" type="submit" disabled={loading}>{loading ? 'Verificando...' : 'Entrar no painel'}</button>
+          <a className="be-back" href="/">Voltar ao portfólio</a>
         </form>
       </main>
     )
@@ -215,88 +150,50 @@ export default function AdminPage() {
       <aside className="be-sidebar">
         <div className="be-sidebar-brand">
           <Martini size={23}/>
-          <div>
-            BAR EXPERIENCE
-            <small>ADMINISTRAÇÃO</small>
-          </div>
+          <div>BAR EXPERIENCE<small>ADMINISTRAÇÃO</small></div>
         </div>
-
         <nav>
           {sections.map(item => {
             const Icon = item.icon
-
-            return (
-              <button
-                key={item.id}
-                className={section === item.id ? 'active' : ''}
-                onClick={() => setSection(item.id)}
-              >
-                <Icon size={18}/>
-                {item.label}
-              </button>
-            )
+            return <button key={item.id} className={section === item.id ? 'active' : ''} onClick={() => setSection(item.id)}><Icon size={18}/>{item.label}</button>
           })}
         </nav>
-
-        <button className="be-logout" onClick={logout}>
-          <LogOut size={17}/> Sair da conta
-        </button>
+        <button className="be-logout" onClick={logout}><LogOut size={17}/> Sair da conta</button>
       </aside>
 
       <main className="be-admin-main">
         <header className="be-admin-top">
-          <div>
-            <span className="be-kicker">ÁREA ADMINISTRATIVA</span>
-            <h1>
-              {sections.find(item => item.id === section)?.label}
-            </h1>
-          </div>
-
-          <span className="be-admin-email">
-            {session.user.email}
-          </span>
+          <div><span className="be-kicker">ÁREA ADMINISTRATIVA</span><h1>{sections.find(item => item.id === section)?.label}</h1></div>
+          <span className="be-admin-email">{session.user.email}</span>
         </header>
 
         {section === 'dashboard' && (
           <section className="be-panel">
             <h2>Bem-vindo ao BAR EXPERIENCE</h2>
-            <p>
-              Gerencie os serviços, estruturas, profissionais,
-              promoções e solicitações de orçamento.
-            </p>
-
+            <p>Gerencie os serviços, estruturas, profissionais, promoções e solicitações de orçamento.</p>
             <div className="be-shortcuts">
               {sections.slice(1).map(item => {
                 const Icon = item.icon
-
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setSection(item.id)}
-                  >
-                    <Icon size={22}/>
-                    <span>{item.label}</span>
-                  </button>
-                )
+                return <button key={item.id} onClick={() => setSection(item.id)}><Icon size={22}/><span>{item.label}</span></button>
               })}
             </div>
           </section>
         )}
 
-        {section !== 'dashboard' && (
+        {['services', 'structures', 'professionals', 'promotions'].includes(section) && (
+          <section className="be-panel be-panel-catalog">
+            <h2>{sections.find(item => item.id === section)?.label}</h2>
+            <CatalogManager key={section} section={section}/>
+          </section>
+        )}
+
+        {section === 'quotes' && (
           <section className="be-panel">
-            <h2>
-              {sections.find(item => item.id === section)?.label}
-            </h2>
-            <p>
-              Área preparada para o gerenciamento deste módulo.
-              A próxima implementação conectará os cadastros e
-              as solicitações ao banco de dados.
-            </p>
+            <h2>Orçamentos</h2>
+            <p>O gerenciamento de solicitações, análise e aprovação manual será implementado na próxima etapa.</p>
           </section>
         )}
       </main>
     </div>
   )
 }
-
