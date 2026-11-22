@@ -190,6 +190,9 @@ export default function CatalogManager({ section }) {
     }
   }
 
+  const visibleRecords = records.filter(record => (categoryFilter === 'all' || record.category === categoryFilter) && [record.name, record.description, record.profession, record.category].some(value => String(value || '').toLocaleLowerCase('pt-BR').includes(search.trim().toLocaleLowerCase('pt-BR'))))
+  const categories = [...new Set(records.map(record => record.category).filter(Boolean))].sort()
+
   return (
     <section className="be-catalog">
       <div className="be-catalog-toolbar">
