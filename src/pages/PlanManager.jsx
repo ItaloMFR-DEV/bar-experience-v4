@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { Plus, Pencil, Trash2, X, Save, RefreshCw, Martini } from 'lucide-react'
 
 const empty = { slug: '', name: '', category: 'social', description: '', image_url: '', base_price: '0', guest_price: '0', included_hours: '4', extra_hour_price: '0', drink_option_limit: '10', drink_choice_limit: '6', featured: false, active: true }
+const categoryLabels = {social:'Eventos sociais',casamento:'Casamentos',corporativo:'Corporativo',premium:'Premium',autoral:'Autoral',personalizado:'Personalizado'}
 const money = value => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 export default function PlanManager() {
@@ -95,7 +96,7 @@ export default function PlanManager() {
   const categories = [...new Set(plans.map(plan=>plan.category).filter(Boolean))].sort()
 
   return <div className="be-catalog">
-    <div className="be-catalog-toolbar"><div><p>Defina os preços, duração incluída e quantos drinks ficam disponíveis para seleção em cada plano.</p><span>{visiblePlans.length} exibidos · {plans.length} cadastrados</span></div><div className="be-catalog-actions"><input className="be-catalog-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar plano..."/><select className="be-catalog-filter" value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)}><option value="all">Todas as categorias</option>{categories.map(x=><option key={x} value={x}>{x}</option>)}</select><button className="be-secondary" onClick={load} disabled={loading}><RefreshCw size={16}/> Atualizar</button><button className="be-primary be-add" onClick={create}><Plus size={17}/> Novo plano</button></div></div>
+    <div className="be-catalog-toolbar"><div><p>Defina os preços, duração incluída e quantos drinks ficam disponíveis para seleção em cada plano.</p><span>{visiblePlans.length} exibidos · {plans.length} cadastrados</span></div><div className="be-catalog-actions"><input className="be-catalog-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar plano..."/><select className="be-catalog-filter" value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)}><option value="all">Todas as categorias</option>{categories.map(x=><option key={x} value={x}>{categoryLabels[x]||x}</option>)}</select><button className="be-secondary" onClick={load} disabled={loading}><RefreshCw size={16}/> Atualizar</button><button className="be-primary be-add" onClick={create}><Plus size={17}/> Novo plano</button></div></div>
     {error && <div className="be-error be-catalog-message">{error}</div>}{notice && <div className="be-success">{notice}</div>}
     {open && <form className="be-catalog-form" onSubmit={save}>
       <div className="be-form-heading"><h3>{editing ? 'Editar plano' : 'Novo plano'}</h3><button type="button" className="be-icon-button" onClick={() => setOpen(false)}><X size={18}/></button></div>
@@ -123,7 +124,7 @@ export default function PlanManager() {
     {loading ? <div className="be-empty">Carregando planos...</div> : visiblePlans.length === 0 ? <div className="be-empty"><Martini size={24}/><p>Nenhum plano cadastrado.</p>Cadastre os planos para liberar a ferramenta de orçamento.</div> :
       <div className="be-plan-card-grid">{visiblePlans.map(plan => <article className="be-plan-card" key={plan.id}>
         {plan.image_url && <img src={plan.image_url} alt="" onError={e => { e.currentTarget.style.display = 'none' }}/>}
-        <div className="be-catalog-info"><div className="be-catalog-title-row"><h3>{plan.name}</h3><span className={plan.active ? 'be-status be-status-on' : 'be-status'}>{plan.active ? 'Ativo' : 'Inativo'}</span></div><span className="be-category-chip">{plan.category || 'social'}</span><p>{plan.description}</p><div className="be-price-lines"><span>Base: {money(plan.base_price)}</span><span>Por convidado: {money(plan.guest_price)}</span><span>{plan.included_hours}h incluídas</span><span>{plan.extra_hour_price}/h adicional</span><span>{plan.be_plan_drinks?.length || 0} drinks associados · escolhe {plan.drink_choice_limit}</span></div></div>
+        <div className="be-catalog-info"><div className="be-catalog-title-row"><h3>{plan.name}</h3><span className={plan.active ? 'be-status be-status-on' : 'be-status'}>{plan.active ? 'Ativo' : 'Inativo'}</span></div><span className="be-category-chip">{categoryLabels[plan.category] || plan.category || 'Eventos sociais'}</span><p>{plan.description}</p><div className="be-price-lines"><span>Base: {money(plan.base_price)}</span><span>Por convidado: {money(plan.guest_price)}</span><span>{plan.included_hours}h incluídas</span><span>{plan.extra_hour_price}/h adicional</span><span>{plan.be_plan_drinks?.length || 0} drinks associados · escolhe {plan.drink_choice_limit}</span></div></div>
         <div className="be-item-actions"><button onClick={() => edit(plan)} aria-label="Editar"><Pencil size={16}/></button><button onClick={() => remove(plan)} aria-label="Excluir"><Trash2 size={16}/></button></div>
       </article>)}</div>}
   </div>
