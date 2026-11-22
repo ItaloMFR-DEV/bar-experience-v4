@@ -42,7 +42,7 @@ export default function AnalyticsDashboard() {
   const [period,setPeriod]=useState('all')
   const load=useCallback(async()=>{
     setLoading(true); setError('')
-    const [q,costs]=await Promise.all([supabase.from('be_quotes').select('*').order('created_at',{ascending:false}),supabase.from('be_drink_costs').select('ingredient_cost,garnish_cost,packaging_cost,other_cost,reference_price,drink:be_drinks(id,name,category)')])
+    const [q,costs]=await Promise.all([supabase.from('be_quotes').select('*').order('created_at',{ascending:false}),supabase.from('be_drink_costs').select('ingredient_cost,garnish_cost,packaging_cost,other_cost,reference_price')])
     if(q.error) setError('Não foi possível carregar os indicadores: '+q.error.message)
     else setQuotes(q.data||[])
     if(!costs.error) setDrinkCosts(costs.data||[])
