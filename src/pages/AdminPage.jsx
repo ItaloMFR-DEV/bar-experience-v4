@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase'
 import CatalogManager from './CatalogManager'
 import DrinkManager from './DrinkManager'
 import PlanManager from './PlanManager'
+import AnalyticsDashboard from './AnalyticsDashboard'
+import QuotesManager from './QuotesManager'
 import { LayoutDashboard, FileText, Martini, Users, Package, Tags, LogOut, LockKeyhole, GlassWater, ClipboardList } from 'lucide-react'
 
 export default function AdminPage() {
@@ -87,11 +89,11 @@ export default function AdminPage() {
       <button className="be-logout" onClick={logout}><LogOut size={17}/> Sair da conta</button>
     </aside>
     <main className="be-admin-main"><header className="be-admin-top"><div><span className="be-kicker">ÁREA ADMINISTRATIVA</span><h1>{sections.find(x=>x.id===section)?.label}</h1></div><span className="be-admin-email">{session.user.email}</span></header>
-      {section==='dashboard'&&<section className="be-panel"><h2>Bem-vindo ao BAR EXPERIENCE</h2><p>Gerencie cardápios, drinks, serviços, estruturas, profissionais e solicitações de orçamento.</p><div className="be-shortcuts">{sections.slice(1).map(item=>{const Icon=item.icon;return <button key={item.id} onClick={()=>setSection(item.id)}><Icon size={22}/><span>{item.label}</span></button>})}</div></section>}
+      {section==='dashboard'&&<section className="be-panel be-panel-analytics"><AnalyticsDashboard/></section>}
       {section==='drinks'&&<section className="be-panel be-panel-catalog"><h2>Cadastro de drinks</h2><DrinkManager/></section>}
       {section==='plans'&&<section className="be-panel be-panel-catalog"><h2>Planos e cardápios</h2><PlanManager/></section>}
       {['services','structures','professionals','promotions'].includes(section)&&<section className="be-panel be-panel-catalog"><h2>{sections.find(x=>x.id===section)?.label}</h2><CatalogManager key={section} section={section}/></section>}
-      {section==='quotes'&&<section className="be-panel"><h2>Orçamentos</h2><p>O painel de análise e aprovação manual será conectado aos pedidos enviados pela ferramenta na próxima etapa.</p></section>}
+      {section==='quotes'&&<section className="be-panel be-panel-quotes"><QuotesManager/></section>}
     </main>
   </div>
 }
