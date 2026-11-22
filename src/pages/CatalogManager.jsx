@@ -244,7 +244,7 @@ export default function CatalogManager({ section }) {
         </form>
       )}
 
-      {loading ? <div className="be-empty">Carregando cadastros...</div> : records.length === 0 ? (
+      {loading ? <div className="be-empty">Carregando cadastros...</div> : visibleRecords.length === 0 ? (
         <div className="be-empty">Nenhum cadastro encontrado. Use “Novo {config.singular}” para começar.</div>
       ) : (
         <div className="be-catalog-list">
