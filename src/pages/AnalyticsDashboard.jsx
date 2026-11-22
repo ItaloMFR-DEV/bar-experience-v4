@@ -17,14 +17,16 @@ function downloadCsv(rows) {
 
 export default function AnalyticsDashboard() {
   const [quotes,setQuotes]=useState([])
+  const [drinkCosts,setDrinkCosts]=useState([])
   const [loading,setLoading]=useState(true)
   const [error,setError]=useState('')
   const [period,setPeriod]=useState('all')
   const load=useCallback(async()=>{
     setLoading(true); setError('')
-    const {data,error:err}=await supabase.from('be_quotes').select('*').order('created_at',{ascending:false})
-    if(err) setError('Não foi possível carregar os indicadores: '+err.message)
-    else setQuotes(data||[])
+    const [q,costs]=await Promise.all([supabase.from('be_quotes').select('*').order('created_at',{ascending:false}),supabase.from('be_drink_costs').select('ingredient_cost,garnish_cost,packaging_cost,other_cost,reference_price,drink:be_drinks(id,name,category)')])
+    if(q.error) setError('Não foi possível carregar os indicadores: '+q.error.message)
+    else setQuotes(q.data||[])
+    if(!costs.error) setDrinkCosts(costs.data||[])
     setLoading(false)
   },[])
   useEffect(()=>{load()},[load])
@@ -60,6 +62,9 @@ export default function AnalyticsDashboard() {
     filtered.forEach(q=>{const name=q.items?.plan?.name||'Sem plano identificado';map[name]=(map[name]||0)+1})
     return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,6)
   },[filtered])
+  const categoryMix=useMemo(()=>{const map={};filtered.forEach(q=>{const groups=[...(q.items?.drinks||[]),...(q.items?.services||[]),...(q.items?.structures||[]),...(q.items?.professionals||[])];groups.forEach(x=>{const key=x.category||'Sem categoria';map[key]=(map[key]||0)+1})});return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8)},[filtered])
+  const topItems=useMemo(()=>{const map={};filtered.forEach(q=>{const groups=[...(q.items?.drinks||[]),...(q.items?.services||[]),...(q.items?.structures||[]),...(q.items?.professionals||[])];groups.forEach(x=>{const key=x.name||'Item';map[key]=(map[key]||0)+1})});return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8)},[filtered])
+  const drinkCostStats=useMemo(()=>{const rows=drinkCosts.map(x=>{const cost=Number(x.ingredient_cost||0)+Number(x.garnish_cost||0)+Number(x.packaging_cost||0)+Number(x.other_cost||0);const price=Number(x.reference_price||0);return {...x,cost,cmv:price>0?cost/price*100:null}});const valid=rows.filter(x=>x.cmv!==null);return {count:rows.length,avgCost:rows.length?rows.reduce((s,x)=>s+x.cost,0)/rows.length:0,avgCmv:valid.length?valid.reduce((s,x)=>s+x.cmv,0)/valid.length:null,high:valid.filter(x=>x.cmv>35).length}},[drinkCosts])
   const maxMonth=Math.max(1,...monthly.map(x=>x.count)), maxPlan=Math.max(1,...plans.map(x=>x[1]))
   const maxValue=Math.max(1,...monthly.map(x=>x.value))
   return <section className="be-analytics">
@@ -73,6 +78,8 @@ export default function AnalyticsDashboard() {
         <article className="be-metric"><span><Target/> Conversão</span><strong>{stats.conversion.toFixed(1).replace('.',',')}%</strong><small>Pedidos aprovados / recebidos</small></article>
         <article className="be-metric"><span><Users/> Público potencial</span><strong>{stats.guests.toLocaleString('pt-BR')}</strong><small>Convidados somados nos pedidos</small></article>
         <article className="be-metric"><span><CalendarDays/> Horas contratadas</span><strong>{stats.hours.toLocaleString('pt-BR')}h</strong><small>{stats.open} oportunidades em aberto</small></article>
+        <article className="be-metric"><span><Wallet/> Custo médio por drink</span><strong>{money(drinkCostStats.avgCost)}</strong><small>{drinkCostStats.count} receitas com dados internos de custo</small></article>
+        <article className="be-metric"><span><Target/> CMV médio cadastrado</span><strong>{drinkCostStats.avgCmv===null?'—':drinkCostStats.avgCmv.toFixed(1).replace('.',',')+'%'}</strong><small>{drinkCostStats.high} receitas acima de 35% de CMV</small></article>
       </div>
       <div className="be-analytics-grid">
         <article className="be-chart-card"><header><div><h3>Volume de orçamentos</h3><p>Quantidade de solicitações por mês</p></div><span>6 meses</span></header><div className="be-bar-chart">{monthly.map(m=><div className="be-bar-column" key={m.label}><b>{m.count}</b><div className="be-bar-track"><i style={{height:(m.count/maxMonth*100)+'%'}}/></div><small>{m.label}</small></div>)}</div></article>
@@ -80,7 +87,7 @@ export default function AnalyticsDashboard() {
         <article className="be-chart-card"><header><div><h3>Funil comercial</h3><p>Distribuição dos pedidos por etapa</p></div></header><div className="be-funnel">{Object.entries(statusNames).map(([key,label])=>{const n=filtered.filter(q=>q.status===key).length;return <div key={key}><span>{label}</span><i><b style={{width:(n/Math.max(1,stats.count)*100)+'%'}}/></i><strong>{n}</strong></div>})}</div></article>
         <article className="be-chart-card"><header><div><h3>Planos mais procurados</h3><p>Preferência dos clientes no período</p></div></header>{plans.length?<div className="be-funnel">{plans.map(([name,n])=><div key={name}><span>{name}</span><i><b style={{width:(n/maxPlan*100)+'%'}}/></i><strong>{n}</strong></div>)}</div>:<div className="be-empty">Ainda não há dados suficientes.</div>}</article>
       </div>
-      <div className="be-insight-strip"><b>Leitura comercial</b><span>{stats.count===0?'Ainda não existem orçamentos neste período. Divulgue a ferramenta para começar a coletar dados.':stats.open+' oportunidades estão em aberto, somando '+money(stats.pipeline)+'. '+(stats.rejected?'Há '+stats.rejected+' pedidos recusados que podem ajudar a identificar objeções.':'Acompanhe o andamento dos pedidos para medir a conversão.')}</span></div>
+      <div className="be-insight-strip"><b>Leitura comercial</b><span>{stats.count===0?'Ainda não existem orçamentos neste período. Divulgue a ferramenta para começar a coletar dados.':stats.open+' oportunidades estão em aberto, somando '+money(stats.pipeline)+'. '+(stats.rejected?'Há '+stats.rejected+' pedidos recusados que podem ajudar a identificar objeções.':'Acompanhe o andamento dos pedidos para medir a conversão.')+' CMV médio cadastrado: '+(drinkCostStats.avgCmv===null?'sem base de preço':drinkCostStats.avgCmv.toFixed(1)+'%')+'. Revise receitas acima de 35% para avaliar porções, fornecedores e preço de referência.'}</span></div>
     </>}
   </section>
 }
