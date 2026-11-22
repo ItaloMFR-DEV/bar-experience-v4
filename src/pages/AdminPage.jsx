@@ -83,9 +83,10 @@ export default function AdminPage() {
     {id:'professionals',label:'Profissionais',icon:Users},
     {id:'promotions',label:'Promoções',icon:Tags}
   ]
+  const navGroups = [{ label: 'COMERCIAL', items: sections.slice(0,2) }, { label: 'CATÁLOGO E OPERAÇÃO', items: sections.slice(2) }]
   return <div className="be-admin">
     <aside className="be-sidebar"><div className="be-sidebar-brand"><Martini size={23}/><div>BAR EXPERIENCE<small>ADMINISTRAÇÃO</small></div></div>
-      <nav>{sections.map(item=>{const Icon=item.icon;return <button key={item.id} className={section===item.id?'active':''} onClick={()=>setSection(item.id)}><Icon size={18}/>{item.label}</button>})}</nav>
+      <nav>{navGroups.map(group=><div className="be-nav-group" key={group.label}><small>{group.label}</small>{group.items.map(item=>{const Icon=item.icon;return <button key={item.id} className={section===item.id?'active':''} onClick={()=>setSection(item.id)}><Icon size={18}/>{item.label}</button>})}</div>)}</nav>
       <button className="be-logout" onClick={logout}><LogOut size={17}/> Sair da conta</button>
     </aside>
     <main className="be-admin-main"><header className="be-admin-top"><div><span className="be-kicker">ÁREA ADMINISTRATIVA</span><h1>{sections.find(x=>x.id===section)?.label}</h1></div><span className="be-admin-email">{session.user.email}</span></header>

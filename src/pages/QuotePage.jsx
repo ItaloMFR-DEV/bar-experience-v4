@@ -10,8 +10,20 @@ const professionalCost = (x, h) => Number(x.base_price || 0) + Number(x.hourly_p
 function ChoiceCard({ item, selected, onClick, meta }) {
   return <button type="button" className={'be-choice-card' + (selected ? ' selected' : '')} onClick={onClick}>
     {item.image_url ? <img src={item.image_url} alt="" onError={e => { e.currentTarget.style.display = 'none' }}/> : <span className="be-choice-placeholder"><Martini size={22}/></span>}
-    <i>{selected ? <Check size={15}/> : <Plus size={15}/>}</i><span className="be-choice-card-copy"><strong>{item.name}</strong>{meta && <small>{meta}</small>}{item.description && <small>{item.description}</small>}</span>
+    <i>{selected ? <Check size={15}/> : <Plus size={15}/>}</i><span className="be-choice-card-copy"><strong>{item.name}</strong>{meta && <span className="be-choice-card-meta">{meta}</span>}{item.description && <small>{item.description}</small>}</span>
   </button>
+}
+
+
+function ChoicePicker({items,selectedIds,onToggle,metaFor}) {
+  const [category,setCategory]=useState('all')
+  const [search,setSearch]=useState('')
+  const categories=[...new Set(items.map(x=>x.category).filter(Boolean))].sort()
+  const visible=items.filter(x=>(category==='all'||x.category===category)&&[x.name,x.description,x.category,x.profession].some(v=>String(v||'').toLocaleLowerCase('pt-BR').includes(search.trim().toLocaleLowerCase('pt-BR'))))
+  return <div className="be-picker">
+    <div className="be-picker-tools"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar item..." aria-label="Buscar item"/><select value={category} onChange={e=>setCategory(e.target.value)} aria-label="Filtrar por categoria"><option value="all">Todas as categorias</option>{categories.map(x=><option key={x} value={x}>{x}</option>)}</select></div>
+    {visible.length?<div className="be-quote-choice-grid">{visible.map(x=><ChoiceCard key={x.id} item={x} selected={selectedIds.includes(x.id)} onClick={()=>onToggle(x.id)} meta={<>{x.category&&<span className="be-category-chip">{x.category}</span>} {metaFor(x)}</>}/>)}</div>:<div className="be-quote-empty">Nenhum item corresponde a esse filtro.</div>}
+  </div>
 }
 
 export default function QuotePage() {
@@ -64,11 +76,11 @@ export default function QuotePage() {
     event.preventDefault(); setSending(true); setError('')
     if (!plan || !drinkComplete) { setError('Selecione o plano e complete a escolha dos drinks.'); setSending(false); return }
     const snapshot = {
-      plan:{id:plan.id,name:plan.name,base_price:plan.base_price,guest_price:plan.guest_price,included_hours:plan.included_hours,extra_hour_price:plan.extra_hour_price},
+      plan:{id:plan.id,name:plan.name,category:plan.category,base_price:plan.base_price,guest_price:plan.guest_price,included_hours:plan.included_hours,extra_hour_price:plan.extra_hour_price},
       drinks:drinks.filter(x => drinkIds.includes(x.id)).map(({id,name,category}) => ({id,name,category})),
-      services:selectedServices.map(x => ({id:x.id,name:x.name,estimated_price:serviceCost(x,hours,guests)})),
-      structures:selectedStructures.map(x => ({id:x.id,name:x.name,estimated_price:structureCost(x,hours)})),
-      professionals:selectedProfessionals.map(x => ({id:x.id,name:x.name,profession:x.profession,estimated_price:professionalCost(x,hours)})),
+      services:selectedServices.map(x => ({id:x.id,name:x.name,category:x.category,estimated_price:serviceCost(x,hours,guests)})),
+      structures:selectedStructures.map(x => ({id:x.id,name:x.name,category:x.category,estimated_price:structureCost(x,hours)})),
+      professionals:selectedProfessionals.map(x => ({id:x.id,name:x.name,category:x.category,profession:x.profession,estimated_price:professionalCost(x,hours)})),
       guests,hours,calculation:{plan:planCost,services:serviceTotal,structures:structureTotal,professionals:professionalTotal}
     }
     const {error} = await supabase.from('be_quotes').insert({
@@ -109,7 +121,7 @@ export default function QuotePage() {
               {x.image_url && <img src={x.image_url} alt="" onError={e=>{e.currentTarget.style.display='none'}}/>}<i>{planId===x.id?<Check size={15}/>:<Plus size={15}/>}</i><span><small>{x.featured?'DESTAQUE':'BAR EXPERIENCE'}</small><b>{x.name}</b><span>{x.description}</span><strong>{money(x.base_price)} <small>valor-base</small></strong><em>{(x.be_plan_drinks||[]).length} drinks disponíveis · escolha {x.drink_choice_limit}</em></span>
             </button>)}</div>}
             {plan && <div className="be-quote-plan-config"><div className="be-quote-section-title"><div><span>PERSONALIZE O CARDÁPIO</span><h2>Escolha seus drinks</h2><p>Selecione {choiceLimit || 'quantos desejar'} entre as {drinks.length} opções disponíveis.</p></div><b className={drinkComplete?'be-quote-count complete':'be-quote-count'}>{drinkIds.length}/{choiceLimit||'∞'}</b></div>
-              <div className="be-quote-drink-grid">{drinks.map(x => <ChoiceCard key={x.id} item={x} selected={drinkIds.includes(x.id)} onClick={() => selectDrink(x.id)} meta={(x.category||'Drink')+(x.alcohol?' · 18+':' · sem álcool')}/>)}</div>
+              <ChoicePicker items={drinks} selectedIds={drinkIds} onToggle={selectDrink} metaFor={x=>(x.alcohol?'18+':'Sem álcool')}/>
               {!drinks.length && <div className="be-quote-empty">Este plano ainda não possui drinks associados. Configure o cardápio no painel administrativo.</div>}
               <div className="be-quote-next-row"><span>{drinkComplete?'Cardápio selecionado.':'Escolha mais '+(choiceLimit-drinkIds.length)+' drink(s).'}</span><button className="be-quote-primary" disabled={!drinkComplete||!drinks.length} onClick={()=>setStep(2)}>Continuar <ArrowRight size={16}/></button></div>
             </div>}
@@ -118,9 +130,9 @@ export default function QuotePage() {
             <div className="be-quote-section-title"><div><span>ETAPA 02</span><h2>Complete sua experiência</h2><p>Adicione horas, serviços, estruturas e profissionais ao orçamento.</p></div></div>
             <div className="be-quote-control-card"><div><b>Duração do serviço</b><small>{plan?.included_hours||4} horas incluídas · hora adicional {money(plan?.extra_hour_price)}</small></div><div className="be-quote-stepper"><button onClick={()=>setHours(x=>Math.max(1,x-1))}><Minus size={15}/></button><b>{hours}h</b><button onClick={()=>setHours(x=>Math.min(24,x+1))}><Plus size={15}/></button></div></div>
             <div className="be-quote-control-card"><div><b>Quantidade de convidados</b><small>Estimativa para calcular o orçamento.</small></div><div className="be-quote-stepper"><button onClick={()=>setGuests(x=>Math.max(1,x-5))}><Minus size={15}/></button><b>{guests}</b><button onClick={()=>setGuests(x=>Math.min(5000,x+5))}><Plus size={15}/></button></div></div>
-            <div className="be-quote-catalog-group"><div className="be-quote-section-title"><div><span><Martini size={14}/> SERVIÇOS</span><h2>Serviços adicionais</h2></div></div><div className="be-quote-choice-grid">{services.map(x=><ChoiceCard key={x.id} item={x} selected={serviceIds.includes(x.id)} onClick={()=>toggle(setServiceIds,x.id)} meta={money(serviceCost(x,hours,guests))}/>)}</div>{!services.length&&<div className="be-quote-empty">Nenhum serviço adicional disponível.</div>}</div>
-            <div className="be-quote-catalog-group"><div className="be-quote-section-title"><div><span><Package size={14}/> ESTRUTURAS</span><h2>Estruturas para o evento</h2></div></div><div className="be-quote-choice-grid">{structures.map(x=><ChoiceCard key={x.id} item={x} selected={structureIds.includes(x.id)} onClick={()=>toggle(setStructureIds,x.id)} meta={money(structureCost(x,hours))}/>)}</div>{!structures.length&&<div className="be-quote-empty">Nenhuma estrutura disponível.</div>}</div>
-            <div className="be-quote-catalog-group"><div className="be-quote-section-title"><div><span><UserRound size={14}/> EQUIPE</span><h2>Profissionais</h2></div></div><div className="be-quote-choice-grid">{professionals.map(x=><ChoiceCard key={x.id} item={x} selected={professionalIds.includes(x.id)} onClick={()=>toggle(setProfessionalIds,x.id)} meta={(x.profession||'Profissional')+' · '+money(professionalCost(x,hours))}/>)}</div>{!professionals.length&&<div className="be-quote-empty">Nenhum profissional adicional disponível.</div>}</div>
+            <div className="be-quote-catalog-group"><div className="be-quote-section-title"><div><span><Martini size={14}/> SERVIÇOS</span><h2>Serviços adicionais</h2></div></div><ChoicePicker items={services} selectedIds={serviceIds} onToggle={id=>toggle(setServiceIds,id)} metaFor={x=>money(serviceCost(x,hours,guests))}/>{!services.length&&<div className="be-quote-empty">Nenhum serviço adicional disponível.</div>}</div>
+            <div className="be-quote-catalog-group"><div className="be-quote-section-title"><div><span><Package size={14}/> ESTRUTURAS</span><h2>Estruturas para o evento</h2></div></div><ChoicePicker items={structures} selectedIds={structureIds} onToggle={id=>toggle(setStructureIds,id)} metaFor={x=>money(structureCost(x,hours))}/>{!structures.length&&<div className="be-quote-empty">Nenhuma estrutura disponível.</div>}</div>
+            <div className="be-quote-catalog-group"><div className="be-quote-section-title"><div><span><UserRound size={14}/> EQUIPE</span><h2>Profissionais</h2></div></div><ChoicePicker items={professionals} selectedIds={professionalIds} onToggle={id=>toggle(setProfessionalIds,id)} metaFor={x=>(x.profession||'Profissional')+' · '+money(professionalCost(x,hours))}/>{!professionals.length&&<div className="be-quote-empty">Nenhum profissional adicional disponível.</div>}</div>
             <div className="be-quote-next-row"><button className="be-quote-secondary" onClick={()=>setStep(1)}>Voltar</button><button className="be-quote-primary" onClick={()=>setStep(3)}>Continuar <ArrowRight size={16}/></button></div>
           </section>}
           {step === 3 && <section className="be-quote-section"><div className="be-quote-section-title"><div><span>ETAPA 03</span><h2>Dados do evento</h2><p>Informe como podemos entrar em contato para revisar sua proposta.</p></div></div>

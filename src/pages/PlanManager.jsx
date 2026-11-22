@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { Plus, Pencil, Trash2, X, Save, RefreshCw, Martini } from 'lucide-react'
 
-const empty = { slug: '', name: '', description: '', image_url: '', base_price: '0', guest_price: '0', included_hours: '4', extra_hour_price: '0', drink_option_limit: '10', drink_choice_limit: '6', featured: false, active: true }
+const empty = { slug: '', name: '', category: 'social', description: '', image_url: '', base_price: '0', guest_price: '0', included_hours: '4', extra_hour_price: '0', drink_option_limit: '10', drink_choice_limit: '6', featured: false, active: true }
 const money = value => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 export default function PlanManager() {
@@ -16,6 +16,8 @@ export default function PlanManager() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [search, setSearch] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('all')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -62,7 +64,7 @@ export default function PlanManager() {
     setSaving(true); setError('')
     const payload = {
       slug: form.slug.trim() || form.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-      name: form.name.trim(), description: form.description, image_url: form.image_url || null,
+      name: form.name.trim(), category: form.category, description: form.description, image_url: form.image_url || null,
       base_price: Number(form.base_price || 0), guest_price: Number(form.guest_price || 0),
       included_hours: Number(form.included_hours || 4), extra_hour_price: Number(form.extra_hour_price || 0),
       drink_option_limit: Number(form.drink_option_limit || 0), drink_choice_limit: Number(form.drink_choice_limit || 0),
@@ -89,13 +91,17 @@ export default function PlanManager() {
     else { setNotice('Plano excluído.'); await load() }
   }
 
+  const visiblePlans = plans.filter(plan => (categoryFilter === 'all' || plan.category === categoryFilter) && [plan.name,plan.description,plan.category].some(v=>String(v||'').toLocaleLowerCase('pt-BR').includes(search.trim().toLocaleLowerCase('pt-BR'))))
+  const categories = [...new Set(plans.map(plan=>plan.category).filter(Boolean))].sort()
+
   return <div className="be-catalog">
-    <div className="be-catalog-toolbar"><div><p>Defina os preços, duração incluída e quantos drinks ficam disponíveis para seleção em cada plano.</p><span>{plans.length} planos cadastrados</span></div><div className="be-catalog-actions"><button className="be-secondary" onClick={load} disabled={loading}><RefreshCw size={16}/> Atualizar</button><button className="be-primary be-add" onClick={create}><Plus size={17}/> Novo plano</button></div></div>
+    <div className="be-catalog-toolbar"><div><p>Defina os preços, duração incluída e quantos drinks ficam disponíveis para seleção em cada plano.</p><span>{visiblePlans.length} exibidos · {plans.length} cadastrados</span></div><div className="be-catalog-actions"><input className="be-catalog-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar plano..."/><select className="be-catalog-filter" value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)}><option value="all">Todas as categorias</option>{categories.map(x=><option key={x} value={x}>{x}</option>)}</select><button className="be-secondary" onClick={load} disabled={loading}><RefreshCw size={16}/> Atualizar</button><button className="be-primary be-add" onClick={create}><Plus size={17}/> Novo plano</button></div></div>
     {error && <div className="be-error be-catalog-message">{error}</div>}{notice && <div className="be-success">{notice}</div>}
     {open && <form className="be-catalog-form" onSubmit={save}>
       <div className="be-form-heading"><h3>{editing ? 'Editar plano' : 'Novo plano'}</h3><button type="button" className="be-icon-button" onClick={() => setOpen(false)}><X size={18}/></button></div>
       <div className="be-form-grid">
         <label className="be-field">Nome do plano<input required value={form.name} onChange={e => update('name', e.target.value)}/></label>
+        <label className="be-field">Categoria<select value={form.category} onChange={e=>update('category',e.target.value)}><option value="social">Eventos sociais</option><option value="casamento">Casamentos</option><option value="corporativo">Corporativo</option><option value="premium">Premium</option><option value="autoral">Autoral</option><option value="personalizado">Personalizado</option></select></label>
         <label className="be-field">Identificador (slug)<input value={form.slug} onChange={e => update('slug', e.target.value)} placeholder="gerado pelo nome se vazio"/></label>
         <label className="be-field be-field-wide">Descrição<textarea rows="2" value={form.description} onChange={e => update('description', e.target.value)}/></label>
         <label className="be-field">URL da imagem<input type="url" value={form.image_url || ''} onChange={e => update('image_url', e.target.value)}/></label>
@@ -114,10 +120,10 @@ export default function PlanManager() {
       </div>
       <div className="be-form-actions"><button type="button" className="be-secondary" onClick={() => setOpen(false)}>Cancelar</button><button className="be-primary" type="submit" disabled={saving}><Save size={16}/>{saving ? 'Salvando...' : 'Salvar plano'}</button></div>
     </form>}
-    {loading ? <div className="be-empty">Carregando planos...</div> : plans.length === 0 ? <div className="be-empty"><Martini size={24}/><p>Nenhum plano cadastrado.</p>Cadastre os planos para liberar a ferramenta de orçamento.</div> :
-      <div className="be-catalog-list">{plans.map(plan => <article className="be-catalog-item" key={plan.id}>
+    {loading ? <div className="be-empty">Carregando planos...</div> : visiblePlans.length === 0 ? <div className="be-empty"><Martini size={24}/><p>Nenhum plano cadastrado.</p>Cadastre os planos para liberar a ferramenta de orçamento.</div> :
+      <div className="be-plan-card-grid">{visiblePlans.map(plan => <article className="be-plan-card" key={plan.id}>
         {plan.image_url && <img src={plan.image_url} alt="" onError={e => { e.currentTarget.style.display = 'none' }}/>}
-        <div className="be-catalog-info"><div className="be-catalog-title-row"><h3>{plan.name}</h3><span className={plan.active ? 'be-status be-status-on' : 'be-status'}>{plan.active ? 'Ativo' : 'Inativo'}</span></div><p>{plan.description}</p><div className="be-price-lines"><span>Base: {money(plan.base_price)}</span><span>Por convidado: {money(plan.guest_price)}</span><span>{plan.included_hours}h incluídas</span><span>{plan.extra_hour_price}/h adicional</span><span>{plan.be_plan_drinks?.length || 0} drinks associados · escolhe {plan.drink_choice_limit}</span></div></div>
+        <div className="be-catalog-info"><div className="be-catalog-title-row"><h3>{plan.name}</h3><span className={plan.active ? 'be-status be-status-on' : 'be-status'}>{plan.active ? 'Ativo' : 'Inativo'}</span></div><span className="be-category-chip">{plan.category || 'social'}</span><p>{plan.description}</p><div className="be-price-lines"><span>Base: {money(plan.base_price)}</span><span>Por convidado: {money(plan.guest_price)}</span><span>{plan.included_hours}h incluídas</span><span>{plan.extra_hour_price}/h adicional</span><span>{plan.be_plan_drinks?.length || 0} drinks associados · escolhe {plan.drink_choice_limit}</span></div></div>
         <div className="be-item-actions"><button onClick={() => edit(plan)} aria-label="Editar"><Pencil size={16}/></button><button onClick={() => remove(plan)} aria-label="Excluir"><Trash2 size={16}/></button></div>
       </article>)}</div>}
   </div>
