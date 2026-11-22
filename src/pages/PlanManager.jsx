@@ -19,6 +19,8 @@ export default function PlanManager() {
   const [notice, setNotice] = useState('')
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [drinkSearch, setDrinkSearch] = useState('')
+  const [drinkCategoryFilter, setDrinkCategoryFilter] = useState('all')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -95,6 +97,17 @@ export default function PlanManager() {
   const visiblePlans = plans.filter(plan => (categoryFilter === 'all' || plan.category === categoryFilter) && [plan.name,plan.description,plan.category].some(v=>String(v||'').toLocaleLowerCase('pt-BR').includes(search.trim().toLocaleLowerCase('pt-BR'))))
   const categories = [...new Set(plans.map(plan=>plan.category).filter(Boolean))].sort()
 
+  const availableDrinks = drinks.filter(drink => drink.active || selected.includes(drink.id))
+  const drinkCategories = [...new Set(availableDrinks.map(drink => drink.category || 'outros'))].sort()
+  const visibleDrinks = availableDrinks.filter(drink =>
+    (drinkCategoryFilter === 'all' || (drink.category || 'outros') === drinkCategoryFilter) &&
+    [drink.name, drink.category].some(value => String(value || '').toLocaleLowerCase('pt-BR').includes(drinkSearch.trim().toLocaleLowerCase('pt-BR')))
+  )
+  const selectedDrinks = selected.map(id => drinks.find(drink => drink.id === id)).filter(Boolean)
+  const drinkCategoryNames = {classicos:'Clássicos',autorais:'Autorais',refrescantes:'Refrescantes',sem_alcool:'Sem álcool',especiais:'Especiais',outros:'Outros'}
+  const selectedLimit = Number(form.drink_option_limit || 0)
+  const selectionComplete = selectedLimit === 0 || selected.length === selectedLimit
+
   return <div className="be-catalog">
     <div className="be-catalog-toolbar"><div><p>Defina os preços, duração incluída e quantos drinks ficam disponíveis para seleção em cada plano.</p><span>{visiblePlans.length} exibidos · {plans.length} cadastrados</span></div><div className="be-catalog-actions"><input className="be-catalog-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar plano..."/><select className="be-catalog-filter" value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)}><option value="all">Todas as categorias</option>{categories.map(x=><option key={x} value={x}>{categoryLabels[x]||x}</option>)}</select><button className="be-secondary" onClick={load} disabled={loading}><RefreshCw size={16}/> Atualizar</button><button className="be-primary be-add" onClick={create}><Plus size={17}/> Novo plano</button></div></div>
     {error && <div className="be-error be-catalog-message">{error}</div>}{notice && <div className="be-success">{notice}</div>}
@@ -115,10 +128,60 @@ export default function PlanManager() {
         <label className="be-field"><span>Destaque</span><span className="be-check-field"><input type="checkbox" checked={form.featured} onChange={e => update('featured', e.target.checked)}/> Destacar este plano</span></label>
         <label className="be-field"><span>Disponibilidade</span><span className="be-check-field"><input type="checkbox" checked={form.active} onChange={e => update('active', e.target.checked)}/> Disponível para clientes</span></label>
       </div>
-      <div className="be-plan-drink-picker"><div><strong>Cardápio de opções deste plano</strong><small>Marque os drinks que o cliente poderá escolher. O número marcado precisa alcançar a quantidade de opções definida acima.</small></div>
-        <div className="be-plan-drink-grid">{drinks.filter(d => d.active).map(drink => <label key={drink.id}><input type="checkbox" checked={selected.includes(drink.id)} onChange={e => setSelected(current => e.target.checked ? [...current, drink.id] : current.filter(id => id !== drink.id))}/><span>{drink.name}<small>{drink.category}</small></span></label>)}</div>
-        <small>{selected.length} drinks selecionados para {form.drink_option_limit || 'todos'} opções disponíveis.</small>
-      </div>
+      <section className="be-plan-drink-picker">
+        <div className="be-plan-picker-heading">
+          <div>
+            <strong>Cardápio de opções deste plano</strong>
+            <small>Escolha os drinks que ficarão disponíveis para o cliente no orçamento.</small>
+          </div>
+          <div className={selectionComplete ? 'be-plan-selection-count is-complete' : 'be-plan-selection-count'}>
+            <b>{selected.length}<span> / {selectedLimit || '∞'}</span></b>
+            <small>{selectionComplete ? 'Seleção completa' : 'Drinks selecionados'}</small>
+          </div>
+        </div>
+        <div className="be-plan-selection-progress" aria-label={selectedLimit ? selected.length + ' de ' + selectedLimit + ' drinks selecionados' : selected.length + ' drinks selecionados'}>
+          <span style={{width: selectedLimit ? Math.min(100, selected.length / selectedLimit * 100) + '%' : '100%'}} />
+        </div>
+        <div className="be-plan-selected-area">
+          <div className="be-plan-selected-title"><b>Selecionados</b><small>{selected.length ? 'Toque no × para remover um drink' : 'Nenhum drink selecionado ainda'}</small></div>
+          {selectedDrinks.length > 0 && <div className="be-plan-selected-list">
+            {selectedDrinks.map(drink => <span className="be-plan-selected-chip" key={drink.id}>
+              <span>{drink.name}</span>
+              <button type="button" onClick={() => setSelected(current => current.filter(id => id !== drink.id))} aria-label={'Remover ' + drink.name}>×</button>
+            </span>)}
+          </div>}
+        </div>
+        <div className="be-plan-drink-tools">
+          <input value={drinkSearch} onChange={event => setDrinkSearch(event.target.value)} placeholder="Buscar drink pelo nome ou categoria..." aria-label="Buscar drinks" />
+          <select value={drinkCategoryFilter} onChange={event => setDrinkCategoryFilter(event.target.value)} aria-label="Filtrar drinks por categoria">
+            <option value="all">Todas as categorias</option>
+            {drinkCategories.map(category => <option key={category} value={category}>{drinkCategoryNames[category] || category.replace(/_/g, ' ')}</option>)}
+          </select>
+        </div>
+        <div className="be-plan-drink-results">
+          {visibleDrinks.length === 0 ? <div className="be-plan-drink-empty">Nenhum drink encontrado com esses filtros.</div> :
+            drinkCategories.filter(category => visibleDrinks.some(drink => (drink.category || 'outros') === category) && (drinkCategoryFilter === 'all' || drinkCategoryFilter === category)).map(category => {
+              const group = visibleDrinks.filter(drink => (drink.category || 'outros') === category)
+              return <div className="be-plan-drink-group" key={category}>
+                <div className="be-plan-drink-group-heading"><b>{drinkCategoryNames[category] || category.replace(/_/g, ' ')}</b><span>{group.length} {group.length === 1 ? 'drink' : 'drinks'}</span></div>
+                <div className="be-plan-drink-grid">
+                  {group.map(drink => {
+                    const isSelected = selected.includes(drink.id)
+                    return <label className={isSelected ? 'be-plan-drink-option is-selected' : 'be-plan-drink-option'} key={drink.id}>
+                      <input type="checkbox" checked={isSelected} onChange={event => setSelected(current => event.target.checked ? [...current, drink.id] : current.filter(id => id !== drink.id))} />
+                      <span className="be-plan-drink-check" aria-hidden="true">{isSelected ? '✓' : '+'}</span>
+                      <span className="be-plan-drink-option-info"><b>{drink.name}</b><small>{drink.active ? 'Disponível para seleção' : 'Drink inativo · já associado'}</small></span>
+                      <span className="be-plan-drink-option-state">{isSelected ? 'Selecionado' : 'Adicionar'}</span>
+                    </label>
+                  })}
+                </div>
+              </div>
+            })
+          }
+        </div>
+        {!selectionComplete && <p className="be-plan-selection-warning">Faltam {selectedLimit - selected.length} drink(s) para completar as opções deste plano.</p>}
+        {selectedLimit > 0 && selected.length > selectedLimit && <p className="be-plan-selection-warning">Remova {selected.length - selectedLimit} drink(s) para atingir o limite definido.</p>}
+      </section>
       <div className="be-form-actions"><button type="button" className="be-secondary" onClick={() => setOpen(false)}>Cancelar</button><button className="be-primary" type="submit" disabled={saving}><Save size={16}/>{saving ? 'Salvando...' : 'Salvar plano'}</button></div>
     </form>}
     {loading ? <div className="be-empty">Carregando planos...</div> : visiblePlans.length === 0 ? <div className="be-empty"><Martini size={24}/><p>Nenhum plano cadastrado.</p>Cadastre os planos para liberar a ferramenta de orçamento.</div> :
