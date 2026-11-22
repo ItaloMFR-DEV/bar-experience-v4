@@ -483,3 +483,58 @@
  .be-drink-card .be-price-lines{display:grid;grid-template-columns:1fr 1fr}
  .be-form-actions{position:sticky;bottom:0;z-index:3}
 }
+
+
+/* Seletor organizado de drinks dentro dos planos */
+.be-plan-drink-picker{display:grid;gap:16px;margin-top:24px;padding:18px;background:#f4f8fc;border:1px solid #cfdeeb;border-radius:14px;min-width:0}
+.be-plan-picker-heading{display:flex;justify-content:space-between;align-items:center;gap:15px}
+.be-plan-picker-heading>div:first-child{display:grid;gap:5px;min-width:0}
+.be-plan-picker-heading strong{font-size:15px;color:#315775}
+.be-plan-picker-heading small,.be-plan-selected-title small{font-size:11px;line-height:1.5;color:#7890a5}
+.be-plan-selection-count{flex:0 0 auto;display:grid;justify-items:end;gap:2px;padding:8px 12px;background:#e7f0f8;border:1px solid #cbddea;border-radius:10px;color:#376b93}
+.be-plan-selection-count>b{font-size:20px;line-height:1.1}
+.be-plan-selection-count>b span{font-size:13px;color:#7890a5}
+.be-plan-selection-count>small{font-size:9px;color:#66839b}
+.be-plan-selection-count.is-complete{background:#e8f5ed;border-color:#c8e4d1;color:#32734d}
+.be-plan-selection-progress{height:7px;background:#dfe9f1;border-radius:20px;overflow:hidden}
+.be-plan-selection-progress>span{display:block;height:100%;background:linear-gradient(90deg,#6ba6d1,#347caf);border-radius:20px;transition:width .2s}
+.be-plan-selection-count.is-complete~.be-plan-selection-progress>span{background:#55a878}
+.be-plan-selected-area{display:grid;gap:9px;padding:13px;background:#fff;border:1px solid #d4e0ea;border-radius:11px}
+.be-plan-selected-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.be-plan-selected-title>b{font-size:11px;color:#426b8c}
+.be-plan-selected-list{display:flex;flex-wrap:wrap;gap:7px}
+.be-plan-selected-chip{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:5px 6px 5px 10px;background:#e8f3fb;border:1px solid #c9deee;border-radius:20px;color:#315f82;font-size:10px}
+.be-plan-selected-chip>span{overflow-wrap:anywhere}
+.be-plan-selected-chip button{width:19px;height:19px;flex:0 0 auto;border:0;border-radius:50%;background:#d2e4f1;color:#315f82;font-size:15px;line-height:1;cursor:pointer}
+.be-plan-drink-tools{display:grid;grid-template-columns:minmax(0,1fr) minmax(170px,.45fr);gap:9px}
+.be-plan-drink-tools input,.be-plan-drink-tools select{width:100%;min-width:0;height:42px;padding:0 12px;border:1px solid #cbd9e5;border-radius:9px;background:#fff;color:#345975;font:12px 'DM Sans',sans-serif;outline:none}
+.be-plan-drink-tools input:focus,.be-plan-drink-tools select:focus{border-color:#5792c0;box-shadow:0 0 0 3px #5792c018}
+.be-plan-drink-results{display:grid;gap:16px;min-width:0}
+.be-plan-drink-group{display:grid;gap:9px}
+.be-plan-drink-group-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-bottom:7px;border-bottom:1px solid #d8e3ec}
+.be-plan-drink-group-heading>b{font-size:11px;color:#527895;text-transform:capitalize}
+.be-plan-drink-group-heading>span{font-size:10px;color:#8aa0b3}
+.be-plan-drink-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.be-plan-drink-option{display:flex;align-items:center;gap:10px;min-width:0;min-height:65px;padding:10px;background:#fff;border:1px solid #d4e0ea;border-radius:10px;cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
+.be-plan-drink-option:hover{border-color:#8db5d3;box-shadow:0 3px 10px #31577510}
+.be-plan-drink-option.is-selected{background:#edf6fc;border-color:#75a8cd;box-shadow:inset 0 0 0 1px #75a8cd}
+.be-plan-drink-option>input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.be-plan-drink-check{display:grid;place-items:center;width:25px;height:25px;flex:0 0 auto;border:1px solid #b9cbd9;border-radius:7px;background:#f7fafc;color:#7190a8;font-size:15px;font-weight:700}
+.be-plan-drink-option.is-selected .be-plan-drink-check{background:#347caf;border-color:#347caf;color:#fff}
+.be-plan-drink-option-info{display:grid;gap:4px;flex:1;min-width:0}
+.be-plan-drink-option-info>b{font-size:11px;line-height:1.35;color:#315775;overflow-wrap:anywhere}
+.be-plan-drink-option-info>small{font-size:9px;line-height:1.3;color:#8499aa}
+.be-plan-drink-option-state{flex:0 0 auto;font-size:9px;font-weight:700;color:#7890a5}
+.be-plan-drink-option.is-selected .be-plan-drink-option-state{color:#347caf}
+.be-plan-drink-empty{padding:22px;text-align:center;background:#fff;border:1px dashed #cbd9e5;border-radius:10px;color:#7890a5;font-size:11px}
+.be-plan-selection-warning{margin:0;padding:10px 12px;background:#fff8e9;border:1px solid #f0dfb5;border-radius:8px;color:#916d2c;font-size:11px;line-height:1.5}
+@media(max-width:700px){
+ .be-plan-drink-picker{padding:12px;gap:13px}
+ .be-plan-picker-heading{align-items:flex-start}
+ .be-plan-picker-heading strong{font-size:13px}
+ .be-plan-selection-count{padding:7px 9px}
+ .be-plan-drink-tools{grid-template-columns:1fr}
+ .be-plan-drink-grid{grid-template-columns:1fr}
+ .be-plan-drink-option{min-height:60px}
+ .be-plan-drink-option-state{font-size:8px}
+}
