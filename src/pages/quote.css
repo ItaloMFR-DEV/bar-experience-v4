@@ -81,3 +81,6 @@
 .be-quote-catalog-group{scroll-margin-top:90px}
 .be-quote-plan-card>span>em{display:inline-flex;width:max-content;max-width:100%;padding:5px 8px;border-radius:7px;background:#edf4fa;color:#527b9a}
 @media(max-width:600px){.be-picker-tools{display:grid;grid-template-columns:1fr}.be-picker-tools input,.be-picker-tools select{width:100%;max-width:none}.be-choice-card{min-height:72px}}
+
+.be-choice-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:9px;color:#8095a8;line-height:1.4}
+.be-choice-card-meta .be-category-chip{font-size:8px}
