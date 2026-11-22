@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, Clock3, Minus, Plus, ShoppingBag, Martini, Package, UserRound, Send, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
+const categoryLabels = {classico:'Clássicos',autoral:'Autorais',refrescante:'Refrescantes',sem_alcool:'Sem álcool',especial:'Especiais',social:'Eventos sociais',casamento:'Casamentos',corporativo:'Corporativo',premium:'Premium',personalizado:'Personalizado',bar:'Bar e coquetelaria',atendimento:'Atendimento',consultoria:'Consultoria',workshop:'Workshops',coffee_break:'Coffee break',operacional:'Operação',balcoes:'Balcões e bares',mobiliario:'Mobiliário',iluminacao:'Iluminação',equipamentos:'Equipamentos',decoracao:'Decoração',efeitos:'Efeitos especiais',lazer:'Lazer e entretenimento',bartender:'Bartenders',chefe_bar:'Chefes de bar',garcom:'Garçons',barback:'Barbacks',coordenacao:'Coordenação',recepcao:'Recepção',sazonal:'Campanhas sazonais',combo:'Combos',fidelidade:'Relacionamento',geral:'Geral'}
 const money = n => Number(n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const serviceCost = (x, h, g) => x.pricing_model === 'hourly' ? Number(x.hourly_price || 0) * h : x.pricing_model === 'per_guest' ? Number(x.guest_price || 0) * g : x.pricing_model === 'hour_guest' ? Number(x.hourly_price || 0) * h + Number(x.guest_price || 0) * g : Number(x.base_price || 0)
 const structureCost = (x, h) => x.pricing_model === 'hourly' ? Number(x.hourly_price || 0) * h : Number(x.base_price || 0)
@@ -21,8 +22,8 @@ function ChoicePicker({items,selectedIds,onToggle,metaFor}) {
   const categories=[...new Set(items.map(x=>x.category).filter(Boolean))].sort()
   const visible=items.filter(x=>(category==='all'||x.category===category)&&[x.name,x.description,x.category,x.profession].some(v=>String(v||'').toLocaleLowerCase('pt-BR').includes(search.trim().toLocaleLowerCase('pt-BR'))))
   return <div className="be-picker">
-    <div className="be-picker-tools"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar item..." aria-label="Buscar item"/><select value={category} onChange={e=>setCategory(e.target.value)} aria-label="Filtrar por categoria"><option value="all">Todas as categorias</option>{categories.map(x=><option key={x} value={x}>{x}</option>)}</select></div>
-    {visible.length?<div className="be-quote-choice-grid">{visible.map(x=><ChoiceCard key={x.id} item={x} selected={selectedIds.includes(x.id)} onClick={()=>onToggle(x.id)} meta={<>{x.category&&<span className="be-category-chip">{x.category}</span>} {metaFor(x)}</>}/>)}</div>:<div className="be-quote-empty">Nenhum item corresponde a esse filtro.</div>}
+    <div className="be-picker-tools"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar item..." aria-label="Buscar item"/><select value={category} onChange={e=>setCategory(e.target.value)} aria-label="Filtrar por categoria"><option value="all">Todas as categorias</option>{categories.map(x=><option key={x} value={x}>{categoryLabels[x]||x}</option>)}</select></div>
+    {visible.length?<div className="be-quote-choice-grid">{visible.map(x=><ChoiceCard key={x.id} item={x} selected={selectedIds.includes(x.id)} onClick={()=>onToggle(x.id)} meta={<>{x.category&&<span className="be-category-chip">{categoryLabels[x.category]||x.category}</span>} {metaFor(x)}</>}/>)}</div>:<div className="be-quote-empty">Nenhum item corresponde a esse filtro.</div>}
   </div>
 }
 
