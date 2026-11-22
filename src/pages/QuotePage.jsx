@@ -10,7 +10,7 @@ const professionalCost = (x, h) => Number(x.base_price || 0) + Number(x.hourly_p
 function ChoiceCard({ item, selected, onClick, meta }) {
   return <button type="button" className={'be-choice-card' + (selected ? ' selected' : '')} onClick={onClick}>
     {item.image_url ? <img src={item.image_url} alt="" onError={e => { e.currentTarget.style.display = 'none' }}/> : <span className="be-choice-placeholder"><Martini size={22}/></span>}
-    <i>{selected ? <Check size={15}/> : <Plus size={15}/>}</i><span className="be-choice-card-copy"><strong>{item.name}</strong>{meta && <small>{meta}</small>}{item.description && <small>{item.description}</small>}</span>
+    <i>{selected ? <Check size={15}/> : <Plus size={15}/>}</i><span className="be-choice-card-copy"><strong>{item.name}</strong>{meta && <span className="be-choice-card-meta">{meta}</span>}{item.description && <small>{item.description}</small>}</span>
   </button>
 }
 
