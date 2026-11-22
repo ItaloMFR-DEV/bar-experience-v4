@@ -435,3 +435,51 @@
 .be-save-notes{margin-top:10px;width:auto}
 @media(max-width:850px){.be-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.be-analytics-grid{grid-template-columns:1fr}.be-kanban{grid-template-columns:repeat(6,minmax(230px,1fr))}}
 @media(max-width:600px){.be-panel-analytics,.be-panel-quotes{padding:12px}.be-analytics-toolbar,.be-quotes-toolbar{align-items:stretch}.be-analytics-actions,.be-quotes-tools{width:100%}.be-analytics-actions>*{flex:1}.be-quotes-tools label{flex:1;min-width:0}.be-quotes-tools input{width:100%;min-width:0}.be-metric-grid{gap:8px}.be-metric{padding:12px}.be-metric>span{font-size:9px}.be-metric>strong{font-size:19px}.be-kanban{grid-template-columns:repeat(6,minmax(220px,1fr))}.be-quote-detail-grid{gap:12px}}
+
+/* Organização visual dos catálogos e navegação */
+.be-nav-group{display:grid;gap:6px;margin-bottom:17px}
+.be-nav-group>small{padding:8px 12px 3px;color:#8aa0b3;font-size:9px;font-weight:700;letter-spacing:1.5px}
+.be-sidebar nav{gap:8px}
+.be-sidebar nav button{min-height:42px;border-radius:9px;transition:background .15s,color .15s}
+.be-catalog-actions{flex-wrap:wrap}
+.be-catalog-search,.be-catalog-filter{height:40px;min-width:145px;padding:0 12px;border:1px solid #c7d6e5;border-radius:9px;background:#fff;color:#385d7b;font:12px 'DM Sans',sans-serif;outline:none}
+.be-catalog-search{min-width:180px;flex:1}
+.be-catalog-search:focus,.be-catalog-filter:focus{border-color:#5792c0;box-shadow:0 0 0 3px #5792c018}
+.be-category-chip{display:inline-flex;align-items:center;width:max-content;max-width:100%;padding:4px 8px;border-radius:20px;background:#e4eff8;color:#3f739d;font-size:9px;font-weight:700;letter-spacing:.2px;text-transform:capitalize}
+.be-drink-card-grid,.be-plan-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.be-drink-card,.be-plan-card{display:flex;align-items:stretch;gap:13px;min-width:0;padding:13px;background:#f5f9fd;border:1px solid #cfdeeb;border-radius:13px;box-shadow:0 3px 10px #28496708}
+.be-drink-card>img,.be-plan-card>img{width:104px;height:112px;object-fit:cover;flex:0 0 auto;border-radius:9px;background:#e5edf5}
+.be-drink-card .be-catalog-info,.be-plan-card .be-catalog-info{flex:1;min-width:0}
+.be-drink-card .be-catalog-title-row h3,.be-plan-card .be-catalog-title-row h3{font-size:15px}
+.be-drink-card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px}
+.be-drink-card-meta small{margin:0!important}
+.be-drink-card .be-price-lines{gap:5px 10px}
+.be-drink-card .be-item-actions,.be-plan-card .be-item-actions{flex-direction:column}
+.be-plan-card{position:relative}
+.be-plan-card>img{height:100%;min-height:112px}
+.be-plan-card .be-catalog-info>p{margin:8px 0;font-size:11px}
+.be-plan-card .be-price-lines{font-size:10px}
+.be-plan-card .be-category-chip{margin-top:8px}
+.be-catalog-item{border-radius:12px;box-shadow:0 3px 12px #28496708}
+.be-item-actions button{border-radius:9px;transition:transform .15s,background .15s}
+.be-item-actions button:hover{transform:translateY(-1px);background:#e1edf7!important}
+.be-form-grid{gap:17px}
+.be-form-actions{position:sticky;bottom:0;padding:12px 0 0;background:linear-gradient(transparent,#f4f8fc 25%)}
+.be-panel-catalog>h2{margin-top:0}
+.be-admin-top{margin-bottom:25px}
+.be-panel{overflow:hidden}
+@media(max-width:950px){.be-drink-card-grid,.be-plan-card-grid{grid-template-columns:1fr}}
+@media(max-width:700px){
+ .be-nav-group{display:flex;align-items:center;gap:5px;margin:0 8px 0 0;flex:0 0 auto}
+ .be-nav-group>small{display:none}
+ .be-sidebar nav{align-items:center;gap:5px}
+ .be-sidebar nav button{min-height:39px;padding:9px 11px}
+ .be-catalog-actions{display:grid;grid-template-columns:1fr 1fr}
+ .be-catalog-search{grid-column:1/-1;min-width:0;width:100%}
+ .be-catalog-filter{min-width:0;width:100%}
+ .be-drink-card,.be-plan-card{gap:9px;padding:10px}
+ .be-drink-card>img,.be-plan-card>img{width:76px;height:90px}
+ .be-drink-card .be-item-actions,.be-plan-card .be-item-actions{width:auto;flex-direction:row;align-self:flex-start}
+ .be-drink-card .be-price-lines{display:grid;grid-template-columns:1fr 1fr}
+ .be-form-actions{position:sticky;bottom:0;z-index:3}
+}
