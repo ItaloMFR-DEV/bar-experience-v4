@@ -9,6 +9,7 @@ const catalogues = {
     singular: 'serviço',
     fields: [
       { name: 'name', label: 'Nome', type: 'text', required: true },
+      { name: 'category', label: 'Categoria', type: 'select', options: [['bar','Bar e coquetelaria'],['equipe','Equipe e operação'],['estrutura','Estrutura e montagem'],['experiencia','Experiências'],['logistica','Logística'],['corporativo','Corporativo'],['social','Eventos sociais'],['casamento','Casamentos'],['premium','Premium'],['geral','Geral']] },
       { name: 'description', label: 'Descrição', type: 'textarea' },
       { name: 'pricing_model', label: 'Modelo de cobrança', type: 'select', options: [['fixed', 'Valor fixo'], ['hourly', 'Por hora'], ['per_guest', 'Por convidado'], ['hour_guest', 'Hora + convidado']] },
       { name: 'base_price', label: 'Valor fixo / base (R$)', type: 'number' },
@@ -24,6 +25,7 @@ const catalogues = {
     singular: 'estrutura',
     fields: [
       { name: 'name', label: 'Nome', type: 'text', required: true },
+      { name: 'category', label: 'Categoria', type: 'select', options: [['bar','Bar e coquetelaria'],['equipe','Equipe e operação'],['estrutura','Estrutura e montagem'],['experiencia','Experiências'],['logistica','Logística'],['corporativo','Corporativo'],['social','Eventos sociais'],['casamento','Casamentos'],['premium','Premium'],['geral','Geral']] },
       { name: 'description', label: 'Descrição', type: 'textarea' },
       { name: 'pricing_model', label: 'Modelo de cobrança', type: 'select', options: [['fixed', 'Valor fixo'], ['hourly', 'Por hora']] },
       { name: 'base_price', label: 'Valor fixo / base (R$)', type: 'number' },
@@ -38,6 +40,7 @@ const catalogues = {
     singular: 'profissional',
     fields: [
       { name: 'name', label: 'Nome', type: 'text', required: true },
+      { name: 'category', label: 'Categoria', type: 'select', options: [['bar','Bar e coquetelaria'],['equipe','Equipe e operação'],['estrutura','Estrutura e montagem'],['experiencia','Experiências'],['logistica','Logística'],['corporativo','Corporativo'],['social','Eventos sociais'],['casamento','Casamentos'],['premium','Premium'],['geral','Geral']] },
       { name: 'profession', label: 'Função / especialidade', type: 'text', required: true },
       { name: 'description', label: 'Descrição', type: 'textarea' },
       { name: 'skills', label: 'Habilidades (separe por vírgula)', type: 'text', array: true },
@@ -53,6 +56,7 @@ const catalogues = {
     singular: 'promoção',
     fields: [
       { name: 'name', label: 'Nome', type: 'text', required: true },
+      { name: 'category', label: 'Categoria', type: 'select', options: [['bar','Bar e coquetelaria'],['equipe','Equipe e operação'],['estrutura','Estrutura e montagem'],['experiencia','Experiências'],['logistica','Logística'],['corporativo','Corporativo'],['social','Eventos sociais'],['casamento','Casamentos'],['premium','Premium'],['geral','Geral']] },
       { name: 'description', label: 'Descrição', type: 'textarea' },
       { name: 'discount_type', label: 'Tipo de desconto', type: 'select', options: [['percentage', 'Percentual (%)'], ['fixed', 'Valor fixo (R$)']] },
       { name: 'discount_value', label: 'Valor do desconto', type: 'number', required: true },
@@ -115,6 +119,8 @@ export default function CatalogManager({ section }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [search, setSearch] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('all')
 
   const loadRecords = useCallback(async () => {
     setLoading(true)
@@ -189,9 +195,9 @@ export default function CatalogManager({ section }) {
       <div className="be-catalog-toolbar">
         <div>
           <p>Cadastre, atualize e controle os itens disponíveis para contratação.</p>
-          <span>{records.length} {records.length === 1 ? 'cadastro' : 'cadastros'}</span>
+          <span>{visibleRecords.length} exibidos · {records.length} no total</span>
         </div>
-        <div className="be-catalog-actions">
+        <div className="be-catalog-actions"><input className="be-catalog-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar cadastro..." aria-label="Buscar cadastro"/><select className="be-catalog-filter" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}><option value="all">Todas as categorias</option>{categories.map(category => <option key={category} value={category}>{category}</option>)}</select>
           <button type="button" className="be-secondary" onClick={loadRecords} disabled={loading}><RefreshCw size={16}/> Atualizar</button>
           <button type="button" className="be-primary be-add" onClick={startNew}><Plus size={17}/> Novo {config.singular}</button>
         </div>
@@ -242,7 +248,7 @@ export default function CatalogManager({ section }) {
         <div className="be-empty">Nenhum cadastro encontrado. Use “Novo {config.singular}” para começar.</div>
       ) : (
         <div className="be-catalog-list">
-          {records.map(record => (
+          {visibleRecords.map(record => (
             <article className="be-catalog-item" key={record.id}>
               {record.image_url && <img src={record.image_url} alt="" loading="lazy" onError={event => { event.currentTarget.style.display = 'none' }}/>}
               <div className="be-catalog-info">
@@ -250,7 +256,7 @@ export default function CatalogManager({ section }) {
                   <h3>{record.name}</h3>
                   <span className={record.active ? 'be-status be-status-on' : 'be-status'}>{record.active ? 'Ativo' : 'Inativo'}</span>
                 </div>
-                {record.profession && <strong>{record.profession}</strong>}
+                {record.category && <span className="be-category-chip">{record.category}</span>}{record.profession && <strong>{record.profession}</strong>}
                 {record.description && <p>{record.description}</p>}
                 {record.skills?.length > 0 && <small>Habilidades: {record.skills.join(', ')}</small>}
                 {record.discount_type && <small>Desconto: {record.discount_type === 'percentage' ? record.discount_value + '%' : 'R$ ' + Number(record.discount_value).toFixed(2)}</small>}
