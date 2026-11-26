@@ -15,8 +15,8 @@ function Header() {
   return (
     <header className="header">
       <a className="brand" href="#inicio" onClick={close}>
-        <span className="brand-mark"><Martini size={20} /></span>
-        <span>{site.name}<small>BAR & EVENTOS</small></span>
+        <span className="brand-mark"><img src="/images/brand/brinda-ae-monograma.png" alt="" /></span>
+        <span>{site.name}<small>SOLUÇÕES EM EVENTOS E BAR</small></span>
       </a>
       <button className="menu-toggle" onClick={() => setOpen(!open)} aria-label="Abrir menu">
         {open ? <X /> : <Menu />}
@@ -119,7 +119,7 @@ function Plans() {
 function DetailBand() {
   return (
     <section className="detail-band">
-      <div className="detail-image" />
+      <div className="detail-image"><img src="/images/brand/brinda-ae-assinatura.jpg" alt="BRINDA AÊ — Soluções em Eventos e Bar" loading="lazy" /></div>
       <div className="detail-content">
         <div className="section-kicker">SEU EVENTO, NOSSO BAR</div>
         <h2>Uma estrutura pensada para <em>receber bem.</em></h2>
@@ -140,7 +140,8 @@ function Contact() {
       </div>
       <div className="contact-actions">
         <BudgetLink className="button button-gold"><MessageCircle size={17}/> Use nossa ferramenta de orçamento</BudgetLink>
-        {site.instagramUrl && <a className="button button-ghost" href={site.instagramUrl}><Instagram size={17}/> Instagram</a>}
+        {site.instagramUrl && <a className="button button-ghost" href={site.instagramUrl} target="_blank" rel="noreferrer"><Instagram size={17}/> Instagram</a>}
+        {site.email && <a className="contact-email" href={`mailto:${site.email}`}> <span>E-MAIL</span>{site.email}</a> }
         
       </div>
     </section>
@@ -148,7 +149,7 @@ function Contact() {
 }
 
 function Footer() {
-  return <footer className="footer"><div className="wrap footer-inner"><a className="brand" href="#inicio"><span className="brand-mark"><Martini size={18}/></span><span>{site.name}<small>BAR & EVENTOS</small></span></a><span>© {new Date().getFullYear()} {site.name}. Todos os direitos reservados.</span><a href="#inicio">Voltar ao topo ↑</a></div></footer>
+  return <footer className="footer"><div className="wrap footer-inner"><a className="brand" href="#inicio"><span className="brand-mark"><img src="/images/brand/brinda-ae-monograma.png" alt="" /></span><span>{site.name}<small>SOLUÇÕES EM EVENTOS E BAR</small></span></a><span>© {new Date().getFullYear()} {site.name}. Todos os direitos reservados.</span><a href="#inicio">Voltar ao topo ↑</a></div></footer>
 }
 
 export default function App() {
