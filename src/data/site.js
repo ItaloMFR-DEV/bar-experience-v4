@@ -1,17 +1,12 @@
-// DADOS GERAIS DO SITE
-// Edite os valores abaixo para atualizar textos, identidade e links.
-// O link da ferramenta de orçamento será configurado aqui quando estiver disponível.
+// Identidade e contatos oficiais da empresa.
 export const site = {
-  name: 'BAR EXPERIENCE',
-  eyebrow: 'COQUETELARIA • BAR PARA EVENTOS',
-  slogan: 'Coquetelaria que transforma encontros em grandes momentos.',
-  description: 'Serviço de bar para eventos sociais e corporativos, com coquetéis preparados na hora, atendimento profissional e cardápios selecionados.',
+  name: 'BRINDA AÊ',
+  eyebrow: 'SOLUÇÕES EM EVENTOS E BAR',
+  slogan: 'Seu evento merece um brinde à altura.',
+  description: 'Soluções completas em bar e eventos, com coquetelaria, estruturas e atendimento profissional para transformar cada celebração em uma experiência especial.',
   city: 'Volta Redonda e região',
-
-  // Cole aqui o endereço completo da ferramenta de orçamento.
-  // Exemplo de formato: https://seusite.com/orcamento
   orcamentoUrl: '',
-
-  instagramUrl: '',
+  instagramUrl: 'https://www.instagram.com/brindaae.solucoes?bqrl=MWp4NGxqcnJ3cXdzMQ==',
+  email: 'ae.brindou@gmail.com',
   telefone: ''
 }
